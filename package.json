@@ -1,0 +1,19 @@
+{
+  "name": "fullstackapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/birimbau/fullstackApi.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/birimbau/fullstackApi/issues"
+  },
+  "homepage": "https://github.com/birimbau/fullstackApi#readme"
+}
