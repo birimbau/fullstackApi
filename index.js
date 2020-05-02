@@ -1,6 +1,23 @@
 const express = require('express');
+var morgan = require('morgan');
 const app = express();
 app.use(express.json());
+
+app.use(
+  morgan(function (tokens, req, res) {
+    return [
+      tokens.method(req, res),
+      tokens.url(req, res),
+      tokens.status(req, res),
+      tokens.res(req, res, 'content-length'),
+      '-',
+      tokens['response-time'](req, res),
+      'ms',
+      `${JSON.stringify(req.body)}`,
+    ].join(' ');
+  })
+);
+
 let persons = [
   {
     name: 'Arto Hellas',
@@ -56,11 +73,19 @@ app.get('/api/persons/:id', (req, res) => {
 app.post('/api/persons', (req, res) => {
   const body = req.body;
 
-  // if (!body.content) {
-  //   return res.status(400).json({
-  //     error: 'content missing',
-  //   });
-  // }
+  if (!body.name || !body.number) {
+    return res.status(400).json({
+      error: 'Name or number is missing',
+    });
+  }
+
+  const isNameDuplicate = persons.find((person) => person.name === body.name);
+
+  if (isNameDuplicate) {
+    return res.status(409).json({
+      error: `The name ${body.name} already exists`,
+    });
+  }
 
   const person = {
     name: body.name,
