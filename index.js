@@ -19,6 +19,7 @@ app.use(
     ].join(' ');
   })
 );
+app.use(express.static('build'));
 
 let persons = [
   {
@@ -47,9 +48,9 @@ const generateId = () => {
   return Math.floor(Math.random() * Math.floor(99999999999999));
 };
 
-app.get('/', (req, res) => {
-  res.send('<h1>Full Stack API!</h1>');
-});
+// app.get('/', (req, res) => {
+//   res.send('<h1>Full Stack API!</h1>');
+// });
 
 app.get('/info', (req, res) => {
   res.send(
