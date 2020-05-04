@@ -91,7 +91,7 @@ app.post('/api/persons', (req, res) => {
 
   const person = {
     name: body.name,
-    important: body.number,
+    number: body.number,
     id: generateId(),
   };
 
