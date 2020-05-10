@@ -1,6 +1,3 @@
-const mongoose = require('mongoose');
-mongoose.set('useFindAndModify', false);
-
 require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
@@ -9,7 +6,6 @@ const app = express();
 const Person = require('./model/person');
 app.use(cors());
 app.use(express.json());
-
 app.use(
   morgan(function (tokens, req, res) {
     return [
@@ -26,18 +22,6 @@ app.use(
 );
 app.use(express.static('build'));
 
-const errorHandler = (error, request, response, next) => {
-  console.error(error.message);
-
-  if (error.name === 'CastError') {
-    return response.status(400).send({ error: 'malformatted id' });
-  }
-
-  next(error);
-};
-
-app.use(errorHandler);
-
 app.get('/api/persons', (req, res) => {
   Person.find({}).then((persons) => {
     res.json(persons);
@@ -48,7 +32,7 @@ app.get('/api/persons/:id', (req, res, next) => {
   Person.findById(req.params.id)
     .then((person) => {
       if (person) {
-        res.json(note.toJSON());
+        res.json(person.toJSON());
       } else {
         res.status(404).end();
       }
@@ -56,7 +40,7 @@ app.get('/api/persons/:id', (req, res, next) => {
     .catch((error) => next(error));
 });
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
   const body = req.body;
 
   if (!body.name || !body.number) {
@@ -70,9 +54,13 @@ app.post('/api/persons', (req, res) => {
     number: body.number,
   });
 
-  person.save().then((person) => {
-    res.json(person.toJSON());
-  });
+  person
+    .save()
+    .then((savedPerson) => savedPerson.toJSON())
+    .then((personFormatted) => {
+      res.json(personFormatted);
+    })
+    .catch((error) => next(error));
 });
 
 app.put('/api/persons/:id', (req, res, next) => {
@@ -90,14 +78,33 @@ app.put('/api/persons/:id', (req, res, next) => {
     .catch((error) => next(error));
 });
 
-app.delete('/api/persons/:id', (req, res) => {
+app.delete('/api/persons/:id', (req, res, next) => {
   Person.findByIdAndRemove(req.params.id)
-    .then((result) => {
+    .then(() => {
       res.status(204).end();
     })
     .catch((error) => next(error));
 });
 
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' });
+};
+
+app.use(unknownEndpoint);
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' });
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message });
+  }
+
+  next(error);
+};
+
+app.use(errorHandler);
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
